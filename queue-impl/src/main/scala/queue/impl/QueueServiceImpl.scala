@@ -36,6 +36,22 @@ class QueueServiceImpl(persistentEntityRegistry: PersistentEntityRegistry,
     }
   }
 
+  override def getDoctorQueue(doctorId: String): ServiceCall[NotUsed, DoctorQueueDto] = ServiceCall { _ =>
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val localDateStr = LocalDate.now().format(formatter)
+    val id = s"${doctorId}|${localDateStr}"
+    val ref = persistentEntityRegistry.refFor[QueueEntity](id)
+    println("HERE")
+    for {
+      result <- ref.ask(GetQueueStateCmd)
+    } yield {
+      val filterWaiting = result.waitList.filter(_.waitListEntryStates.maxBy(_.timestamp).status == WaitListEntryStatus.WAITING)
+      println(filterWaiting)
+      val patientIds = filterWaiting.sortBy(_.waitListEntryStates.maxBy(_.timestamp).timestamp).map(_.patientId)
+      DoctorQueueDto(patientIds)
+    }
+  }
+
   override def updatePatientWait(): ServiceCall[QueueUpdateDto, Done] = ServiceCall { req =>
     val action = WaitListEntryStatus.WAITING
     updateQueueAction(req.patientId, req.doctorId, action)
@@ -63,7 +79,6 @@ class QueueServiceImpl(persistentEntityRegistry: PersistentEntityRegistry,
         throw new Exception(result.message.getOrElse("ERROR"))
       }
     }
-
   }
 
   override def updatePatientReject(): ServiceCall[QueueUpdateDto, Done] = ServiceCall { req =>

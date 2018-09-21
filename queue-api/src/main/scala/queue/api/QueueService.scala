@@ -5,7 +5,7 @@ import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.lightbend.lagom.scaladsl.api.broker.kafka.{KafkaProperties, PartitionKeyStrategy}
 import com.lightbend.lagom.scaladsl.api.transport.Method
 import com.lightbend.lagom.scaladsl.api.{Descriptor, Service, ServiceAcl, ServiceCall}
-import queue.api.model.{QueueUpdateDto, RoomResponseDto, WaitListEntryResultSummaryDto}
+import queue.api.model.{DoctorQueueDto, QueueUpdateDto, RoomResponseDto, WaitListEntryResultSummaryDto}
 import play.api.libs.json.{Format, Json}
 
 object QueueService  {
@@ -33,6 +33,8 @@ trait QueueService extends Service {
 
   def updateDoctorComplete(): ServiceCall[QueueUpdateDto, Done]
 
+  def getDoctorQueue(doctorId: String): ServiceCall[NotUsed, DoctorQueueDto]
+
   /*def getAllQueues(): ServiceCall[NotUsed, QueueResultDto]
 
   def initiateQueue(): ServiceCall[QueueStateDto, Done]*/
@@ -43,9 +45,11 @@ trait QueueService extends Service {
     named("queue")
       .withCalls(
         restCall(Method.GET, "/api/queue/:patientId/:date", getWaitListEntries _),
+        restCall(Method.GET, "/api/queue/:patientId/:date", getWaitListEntries _),
         restCall(Method.POST, "/api/queue/patient/wait", updatePatientWait _),
         restCall(Method.POST, "/api/queue/patient/accept", updatePatientAccept _),
         restCall(Method.POST, "/api/queue/patient/reject", updatePatientReject _),
+        restCall(Method.GET, "/api/queue/doctor/waiting/:doctorId", getDoctorQueue _),
         restCall(Method.POST, "/api/queue/doctor/accept", updateDoctorAccept _),
         restCall(Method.POST, "/api/queue/doctor/reject", updateDoctorReject _),
         restCall(Method.POST, "/api/queue/doctor/complete", updateDoctorComplete _),

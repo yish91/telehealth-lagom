@@ -42,3 +42,11 @@ object RoomResponseDto {
 
   implicit val format: Format[RoomResponseDto] = Json.format
 }
+
+case class DoctorQueueDto(patientIds: Seq[String])
+
+object DoctorQueueDto {
+
+  implicit val format: Format[DoctorQueueDto] = Json.format
+}
+
