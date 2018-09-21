@@ -4,7 +4,7 @@ import java.time.{Instant, LocalDate}
 
 import play.api.libs.json.{Format, Json}
 
-case class QueueUpdateDto(patientId: String, doctorId: Option[String], action: String)
+case class QueueUpdateDto(patientId: String, doctorId: String)
 
 object QueueUpdateDto {
 
@@ -34,4 +34,11 @@ case class WaitListEntryStateDto(status: String,
 object WaitListEntryStateDto {
 
   implicit val format: Format[WaitListEntryStateDto] = Json.format
+}
+
+case class RoomResponseDto(room: String)
+
+object RoomResponseDto {
+
+  implicit val format: Format[RoomResponseDto] = Json.format
 }

@@ -22,12 +22,12 @@ class QueueEntity extends PersistentEntity {
   override type State = QueueState
 
   val waitListEntryStatusMap = HashMap(
-    WaitListEntryStatus.WAITING -> List(WaitListEntryStatus.ATTENDING, WaitListEntryStatus.CANCELLED, WaitListEntryStatus.REJECTED, WaitListEntryStatus.ONHOLD),
-    WaitListEntryStatus.ATTENDING -> List(WaitListEntryStatus.COMPLETED, WaitListEntryStatus.CANCELLED, WaitListEntryStatus.REJECTED, WaitListEntryStatus.ONHOLD),
-    WaitListEntryStatus.CANCELLED -> List(WaitListEntryStatus.WAITING),
-    WaitListEntryStatus.REJECTED -> List(WaitListEntryStatus.WAITING, WaitListEntryStatus.COMPLETED),
-    WaitListEntryStatus.ONHOLD -> List(WaitListEntryStatus.WAITING, WaitListEntryStatus.ATTENDING, WaitListEntryStatus.CANCELLED, WaitListEntryStatus.REJECTED),
-    WaitListEntryStatus.COMPLETED -> List()
+    WaitListEntryStatus.WAITING -> List(WaitListEntryStatus.DOCTOR_ACCEPTED, WaitListEntryStatus.PATIENT_REJECTED, WaitListEntryStatus.DOCTOR_REJECTED),
+    WaitListEntryStatus.DOCTOR_ACCEPTED -> List(WaitListEntryStatus.PATIENT_ACCEPTED, WaitListEntryStatus.PATIENT_REJECTED, WaitListEntryStatus.DOCTOR_REJECTED),
+    WaitListEntryStatus.PATIENT_ACCEPTED -> List(WaitListEntryStatus.DOCTOR_COMPLETED),
+    WaitListEntryStatus.PATIENT_REJECTED -> List(WaitListEntryStatus.WAITING),
+    WaitListEntryStatus.DOCTOR_REJECTED -> List(WaitListEntryStatus.WAITING),
+    WaitListEntryStatus.DOCTOR_COMPLETED -> List(WaitListEntryStatus.WAITING)
   )
 
   /**
@@ -57,7 +57,7 @@ class QueueEntity extends PersistentEntity {
             ctx.done
           }
         } else {
-          val latestState = latestStateOpt.get.waitListEntryStates.last
+          val latestState = latestStateOpt.get.waitListEntryStates.maxBy(_.timestamp)
           val acceptableProgression = waitListEntryStatusMap(latestState.status).map(_.toString)
           if (acceptableProgression.contains(action.toString)) {
             ctx.thenPersist(QueueUpdatedEvent(waitListEntry))(_ => ctx.reply(QueueCmdResult(ResultStatus.SUCCESS, None)))
@@ -130,7 +130,7 @@ object WaitListEntryResult {
 
 object WaitListEntryStatus extends Enumeration {
   type WaitListEntryStatus = Value
-  val WAITING, ATTENDING, CANCELLED, REJECTED, COMPLETED, ONHOLD = Value
+  val WAITING, PATIENT_ACCEPTED, PATIENT_REJECTED, DOCTOR_ACCEPTED, DOCTOR_REJECTED, DOCTOR_COMPLETED = Value
 
   implicit val waitListEntryStatusReads = Reads.enumNameReads(WaitListEntryStatus)
   implicit val waitListEntryStatusWrites = Writes.enumNameWrites

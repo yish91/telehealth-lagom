@@ -50,11 +50,9 @@ class QueueRepository(session: CassandraSession)(implicit ec: ExecutionContext) 
     Future.successful(List(queueBindStatement))
   }
 
-  def getWaitListEntries(patientId: String, date: LocalDate): Future[Seq[WaitListEntryResult]] = {
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    val dateStr = date.format(formatter)
+  def getWaitListEntries(patientId: String, dateStr: String): Future[Seq[WaitListEntryResult]] = {
     for {
-      waitListEntryResultList <- session.selectAll(s"SELECT * FROM queue.waitListEntry WHERE patientId = '$patientId' AND date = '$formatter' ALLOW FILTERING").map { optRow =>
+      waitListEntryResultList <- session.selectAll(s"SELECT * FROM queue.waitListEntry WHERE patientId = '$patientId' AND date = '$dateStr' ALLOW FILTERING").map { optRow =>
         optRow.map { row =>
           val patientId = row.getString("patientId")
           val date = LocalDate.ofEpochDay(row.getDate("date").getDaysSinceEpoch)
@@ -69,8 +67,8 @@ class QueueRepository(session: CassandraSession)(implicit ec: ExecutionContext) 
       val groupedStatus = waitListEntryResultList.groupBy(_.doctorId)
       groupedStatus.map(s => {
         val wler = s._2
-        val statuses: List[WaitListEntryState] = wler.flatMap(_.waitListEntryStates).toList
-        WaitListEntryResult(patientId, s._1, date, statuses)
+        val statuses: List[WaitListEntryState] = wler.flatMap(_.waitListEntryStates).toList.sortBy(_.timestamp)
+        WaitListEntryResult(patientId, s._1, LocalDate.parse(dateStr), statuses)
       }).toSeq
     }
   }

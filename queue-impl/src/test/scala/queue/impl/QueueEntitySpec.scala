@@ -36,7 +36,7 @@ class QueueEntitySpec extends WordSpecLike with Matchers with BeforeAndAfterAll
 
     "handle cancelled" in {
       val driver = new PersistentEntityTestDriver(system, new QueueEntity, "queueEntity-2")
-      val cmd = UpdateQueueCmd(patientId = "1", WaitListEntryStatus.CANCELLED)
+      val cmd = UpdateQueueCmd(patientId = "1", WaitListEntryStatus.PATIENT_REJECTED)
       val outcome = driver.run(cmd)
       outcome.events.size shouldBe 0
       outcome.state.waitList.size shouldBe 0

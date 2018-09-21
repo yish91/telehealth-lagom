@@ -30,8 +30,8 @@ trait PatientService extends Service {
     // @formatter:off
     named("patient")
       .withCalls(
-        restCall(Method.GET, "/api/patient/all", getAllPatients _),
-        restCall(Method.GET, "/api/patient/:id", getPatient _),
+        restCall(Method.GET, "/api/patient/search/all", getAllPatients _),
+        restCall(Method.GET, "/api/patient/search/id/:id", getPatient _),
         restCall(Method.POST, "/api/patient/initiate", initiatePatient _)
       )
       .withAutoAcl(true)

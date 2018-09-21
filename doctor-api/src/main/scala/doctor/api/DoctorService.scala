@@ -40,10 +40,10 @@ trait DoctorService extends Service {
     // @formatter:off
     named("doctor")
       .withCalls(
-        restCall(Method.GET, "/api/doctor/all", getAllDoctors _),
-        restCall(Method.GET, "/api/doctor/:id", getDoctor _),
+        restCall(Method.GET, "/api/doctor/search/all", getAllDoctors _),
+        restCall(Method.GET, "/api/doctor/search/id/:id", getDoctor _),
         restCall(Method.GET, "/api/doctor/search/:searchTerm", searchDoctors _),
-        restCall(Method.POST, "/api/doctor/specialities", getDoctorsWithSpecialities _),
+        restCall(Method.POST, "/api/doctor/search/specialities", getDoctorsWithSpecialities _),
         restCall(Method.POST, "/api/doctor/initiate", initiateDoctor _)
       )
       .withTopics(
